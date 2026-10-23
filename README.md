@@ -45,3 +45,16 @@ The following super-useful functions are included.
     - @return: the list of shortest paths
 
 3. `_get_rand_num`: This is a helper function to get a random float between 0 and 1 that doesn't include 0.
+
+## Usage:
+
+This package is available only on test pypi, with the intent of keeping package repositories clean :) 
+
+To install: run `pip install -i https://test.pypi.org/simple/ gilbert-nets=={version}`
+
+To use: `from gilbert_nets import networkfx`
+
+To test: `networkfx.test_all()`
+
+Thats it! Happy networking!
+
