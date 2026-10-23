@@ -3,14 +3,63 @@ from tailestim import HillEstimator, KernelTypeEstimator, MomentsEstimator
 import random, math
 import powerlaw
 import networkx as nx
+import numpy as np
 
 
 def test_fx():
+    """
+    Simple test of the package.
+    """
     return "Hello there! You've found my network functions."
 
 
+def test_all():
+    """
+    More robust test of package that runs all the functions.
+    """
+    print(test_fx())
+
+    #####################################
+    # Assignment 1 Tests
+
+    K = nx.karate_club_graph()
+
+    # Test for shortest path functions
+    # Lets test for all nodes as source nodes
+    for test_node in K.nodes:
+        result, er = test_my_shortest_paths(K, test_node)
+        final_result = result
+        if result == False:
+            print(er)
+
+    if final_result:
+        print("All tests passed!")
+
+    my_paths = run_pred_recurse_for_source(K, 7)
+
+    # Test Betweenness
+    res, message = test_betweenness_func(compute_betweeness)
+    print(f"Result is: {res}: {message}")
+
+    #####################################
+    # Assignment 2 Tests
+
+    G, degree_dists = grow_barabasi_albert_net(1024, 2)
+    print("network estimated.")
+    estimates = estimate_gamma(G)
+
+    print(f"Estimates: {estimates}")
+
+    final_degrees = get_power_law_seq(100, 3, 3)
+
+    print(f"Final degree: {final_degrees}")
+
+
+################################
 # Assignment 1 functions
-def pred_recurse(pred, curr_path, r_source, all_paths, all_predecessors):
+
+
+def _pred_recurse(pred, curr_path, r_source, all_paths, all_predecessors):
     """
     The recursion portion. This builds out all possibly shortest paths recursively
     based on predecessor nodes.
@@ -29,10 +78,10 @@ def pred_recurse(pred, curr_path, r_source, all_paths, all_predecessors):
         return
     new_preds = all_predecessors[pred]
     for new_pred in new_preds:
-        pred_recurse(new_pred, new_path, r_source, all_paths, all_predecessors)
+        _pred_recurse(new_pred, new_path, r_source, all_paths, all_predecessors)
 
 
-def run_pred_recurse_for_source(graph, source_node):
+def _run_pred_recurse_for_source(graph, source_node):
     """
     This runs the recursion portion for each
 
@@ -47,37 +96,8 @@ def run_pred_recurse_for_source(graph, source_node):
     )  # a dictionary of predecessors for the path from source to all nodes in the graph.
     all_paths = []
     for init_pred in predecessors:
-        pred_recurse(init_pred, [], source_node, all_paths, predecessors)
+        _pred_recurse(init_pred, [], source_node, all_paths, predecessors)
     return all_paths
-
-
-def test_my_shortest_paths(graph, test_source):
-    """
-    This just tests my shortest graph algorithm against Network X's.
-
-    @param graph (object): The graph we are working with
-    @param source_node (int): the source node we want to test shortest paths from
-
-    @return success (bool), string of results
-    """
-    my_paths = run_pred_recurse_for_source(graph, test_source)
-    incorrect_nodes = []
-    for node in graph.nodes:
-        my_path_list = [my_p for my_p in my_paths if my_p[-1] == node]
-        their_path_list = [p for p in nx.all_shortest_paths(graph, test_source, node)]
-        if not my_path_list == their_path_list:
-            incorrect_nodes.append(node)
-
-    if len(incorrect_nodes) > 0:
-        return (
-            False,
-            f"Found the following target nodes for source {test_source} with mismatched paths: {incorrect_nodes}",
-        )
-    else:
-        return (
-            True,
-            f"All paths are equal to Network X's paths for source {test_source}!",
-        )
 
 
 def compute_betweeness(network, print_statements=False):
@@ -117,7 +137,7 @@ def compute_betweeness(network, print_statements=False):
         if print_statements:
             print(f"\n\nStarting node x {node_x}...")
         # get all shortest paths
-        all_node_paths = run_pred_recurse_for_source(network, node_x)
+        all_node_paths = _run_pred_recurse_for_source(network, node_x)
         if running_betweenness.get(node_x) == None:
             running_betweenness[node_x] = 0
         for i in range(int(node_x), len(network.nodes)):
@@ -140,6 +160,150 @@ def compute_betweeness(network, print_statements=False):
     return dict(sorted(running_betweenness.items()))
 
 
+def test_my_shortest_paths(graph, test_source):
+    """
+    This just tests my shortest graph algorithm against Network X's.
+
+    @param graph (object): The graph we are working with
+    @param source_node (int): the source node we want to test shortest paths from
+
+    @return success (bool), string of results
+    """
+    my_paths = _run_pred_recurse_for_source(graph, test_source)
+    incorrect_nodes = []
+    for node in graph.nodes:
+        my_path_list = [my_p for my_p in my_paths if my_p[-1] == node]
+        their_path_list = [p for p in nx.all_shortest_paths(graph, test_source, node)]
+        if not my_path_list == their_path_list:
+            incorrect_nodes.append(node)
+
+    if len(incorrect_nodes) > 0:
+        return (
+            False,
+            f"Found the following target nodes for source {test_source} with mismatched paths: {incorrect_nodes}",
+        )
+    else:
+        return (
+            True,
+            f"All paths are equal to Network X's paths for source {test_source}!",
+        )
+
+
+def test_betweenness_func(btwn_func):
+    """
+    This function tests a betweeness function.
+
+    It tests both edgecases and correct cases, including:
+    - Non-graph object
+    - Nodeless graph
+    - Edgeless graph
+    - Graph with one edge
+    - Fully connected graph
+    - Graph with multiple components
+    - Complex random graph
+
+    @param btwn_func (function): The function we want to test
+
+    @return bool, error_message: whether or not the test suite succeeded, and error messages if it did not
+    """
+
+    # Non_graph object
+    obj = object
+    try:
+        btwn_func(obj)
+        return False, "Failed to throw exception when random python object was passed."
+    except Exception as e:
+        print(
+            f"The following exception was properly thrown for random python object: {e}"
+        )
+
+    # Test nodeless network
+    d = nx.Graph()
+    try:
+        btwn_func(d)
+        test_success = False
+        return test_success, "Failed to throw exception when nodeless graph was passed."
+    except Exception as e:
+        print(f"The following exception was properly thrown for nodeless graph: {e}")
+
+    # Edgeless graph
+    edgeless = nx.Graph()
+    edgeless.add_nodes_from([1, 2, 3, 4, 5])
+
+    if btwn_func(edgeless) != nx.betweenness_centrality(edgeless, normalized=False):
+        return False, "Edgeless graph is not equivalent to NetworkX's edgeless graph."
+    else:
+        print("Passed no-edge network test.")
+
+    # Graph with one edge
+    one_edge = nx.Graph()
+    one_edge.add_nodes_from([1, 2, 3, 4, 5])
+    one_edge.add_edge(3, 5)
+
+    if btwn_func(one_edge) != nx.betweenness_centrality(one_edge, normalized=False):
+        return False, "One-edge graph is not equivalent to NetworkX's one-edge graph."
+    else:
+        print("Passed one-edge network test.")
+
+    # Fully connected graph
+    connected = nx.Graph()
+    connected.add_nodes_from([1, 2, 3, 4, 5])
+    connected.add_edges_from(
+        [(1, 2), (1, 3), (1, 4), (1, 5), (2, 3), (2, 4), (2, 5), (3, 4), (3, 5), (4, 5)]
+    )
+
+    if btwn_func(connected) != nx.betweenness_centrality(connected, normalized=False):
+        return (
+            False,
+            "Fully connected graph is not equivalent to NetworkX's fully connected graph.",
+        )
+    else:
+        print("Passed fully connected network test.")
+
+    # Graph with multiple components
+    two_connected = nx.Graph()
+    two_connected.add_nodes_from([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+    two_connected.add_edges_from(
+        [(1, 2), (2, 3), (4, 5), (3, 6), (1, 3), (4, 9), (4, 8)]
+    )
+
+    if btwn_func(connected) != nx.betweenness_centrality(connected, normalized=False):
+        return (
+            False,
+            "Multicomponent graph is not equivalent to NetworkX's multicomponent graph.",
+        )
+    else:
+        print("Passed multicomponent network test.")
+
+    # Complex random graph
+    mister_complex = nx.Graph()
+
+    mister_complex.add_nodes_from(range(0, 300))
+    for i in range(0, 250):
+        node_one = random.randint(0, 300)
+        node_two = random.randint(0, 300)
+        if node_one == node_two:
+            continue
+        mister_complex.add_edge(node_one, node_two)
+
+    our_results = btwn_func(mister_complex)
+    their_results = nx.betweenness_centrality(mister_complex, normalized=False)
+
+    my_results_rounded = {key: round(val, 2) for key, val in our_results.items()}
+    their_results_rounded = {key: round(val, 2) for key, val in their_results.items()}
+
+    if my_results_rounded != their_results_rounded:
+        return (
+            False,
+            "Complex graph is not equivalent to NetworkX's complex graph. Yes, we checked rounding error.",
+        )
+    else:
+        print("Passed complex network test.")
+
+    return True, "All tests passed! Great job."
+
+
+#####################################
 # Assignment 2 Functions
 
 
@@ -266,7 +430,7 @@ def estimate_gamma(G):
     return gamma_estimates
 
 
-def get_rand_num():
+def _get_rand_num():
     """
     Helper function to return a random float that doesn't include 0
 
@@ -283,7 +447,7 @@ def get_power_law_seq(n, gamma, avg_deg):
     This function creates a a sequence in a power-law distribution.
 
     @param n (int): The number of elements in the sequence
-    @param gamma (int): The exponent of the powerlaw
+    @param gamma (float): The exponent of the powerlaw
     @param avg_deg (int): The average degree for the distribution
 
     @return a sequence of ints that form a power-law distribution
@@ -291,7 +455,7 @@ def get_power_law_seq(n, gamma, avg_deg):
     r_i = []
     # generate random numbers
     for i in range(0, n):
-        rand = get_rand_num()
+        rand = _get_rand_num()
         r_i.append(rand)
 
     # Get k-min and k-max from average degree
