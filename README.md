@@ -56,5 +56,17 @@ To use: `from gilbert_nets import networkfx`
 
 To test: `networkfx.test_all()`
 
+## To contribute to Test PiPy
+
+This is for my memory only. I don't actually want anyone external doing this, and you don't have the token to do it anyway. Until AI finds a vulnerability in that too- (squinty eyes at you, PHP </3)
+
+1. Update version number in `pyproject.toml`
+    - You might need to clean the `dist\` folder
+2. Build the package `python3 -m build`
+3. Then deploy with `python3 -m twine upload --verbose --repository testpypi dist/*`
+
+Then view at https://test.pypi.org/project/gilbert-nets/ 
+
+
 Thats it! Happy networking!
 

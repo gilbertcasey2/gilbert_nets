@@ -1,6 +1,6 @@
 [project]
 name = "gilbert_nets"
-version = "0.0.4"
+version = "0.0.5"
 authors = [
   { name="Casey Elizabeth Gilbert", email="gilbert.cas@northeastern.edu" },
 ]
