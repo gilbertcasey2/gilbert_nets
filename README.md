@@ -6,9 +6,9 @@ It is not maintained. Be careful.
 
 The following super-useful functions are included. 
 
-### Functions:
+## Functions:
 
-##### Public Functions
+#### Public Functions
 
 1. `test_fx`: This is a simple test of the package to ensure it is working.
 
@@ -34,7 +34,7 @@ The following super-useful functions are included.
     - @param: number of elements in the sequence (int), gamma of the powerlaw (float), average degree (int)
     - @return: sequence of ints of a power-law distribution (list)
 
-##### Private (internal use only) Functions
+#### Private (internal use only) Functions
 
 1. `_pred_recurse`: This function supports the `compute_betweenness function`, which relies on obtaining all shortest paths in a network. This function is the recursion portion, which builds out all possibe shortest paths based on predecessor nodes (working backwards until it hits the source, and appending the new path.)
     - @params: the most recent predecessor node, the current path being built, the source node we are searching for, a list of all paths accumulated for that source, and a list of all predecessors. 
