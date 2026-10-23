@@ -1,0 +1,20 @@
+Metadata-Version: 2.4
+Name: gilbert_nets
+Version: 0.0.2
+Summary: A package of exciting Network Science tools.
+Author-email: Casey Elizabeth Gilbert <gilbert.cas@northeastern.edu>
+License-Expression: MIT
+Project-URL: Homepage, https://github.com/pypa/sampleproject
+Project-URL: Issues, https://github.com/pypa/sampleproject/issues
+Classifier: Programming Language :: Python :: 3
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.9
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Dynamic: license-file
+
+# Gilbert Network Science
+
+This is an awesome package of my Network Science functions!
+
+It is not maintained. Be careful. 
